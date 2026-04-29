@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sipraw Coffee Break Reminder — Free Chrome Extension</title>
+  <meta name="description" content="Never miss your coffee break! Free Chrome Extension by Sipraw. Get timely reminders to sip, relax & recharge while working.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --espresso: #1c0e05;
+      --roast:    #3e210c;
+      --mocha:    #6b3a1f;
+      --caramel:  #c47b2b;
+      --cream:    #f5e6c8;
+      --accent:   #e8924a;
+      --green:    #4caf82;
+      --bg:       #fdf6ec;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--espresso);
+      min-height: 100vh;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: rgba(253,246,236,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(196,123,43,0.15);
+      z-index: 100;
+      padding: 0 5%;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--espresso);
+    }
+    .nav-brand span { color: var(--caramel); }
+
+    .nav-link {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid var(--caramel);
+      color: var(--caramel);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .nav-link:hover { background: var(--caramel); color: white; }
+
+    .hero {
+      padding: 140px 5% 80px;
+      text-align: center;
+      background: linear-gradient(180deg, #fff8ef 0%, var(--bg) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '☕';
+      position: absolute;
+      font-size: 400px;
+      opacity: 0.03;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(76,175,130,0.12);
+      color: #2e7d5e;
+      border: 1px solid rgba(76,175,130,0.3);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
+    .badge-dot {
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--espresso);
+      margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--caramel); }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--mocha);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--caramel), var(--accent));
+      color: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 14px 28px;
+      border-radius: 30px;
+      text-decoration: none;
+      box-shadow: 0 8px 24px rgba(196,123,43,0.3);
+      transition: all 0.2s;
+    }
+    .btn-main:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(196,123,43,0.4); }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: var(--mocha);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 14px 28px;
+      border-radius: 30px;
+      text-decoration: none;
+      border: 1px solid rgba(107,58,31,0.25);
+      transition: all 0.2s;
+    }
+    .btn-ghost:hover { background: rgba(107,58,31,0.06); border-color: var(--mocha); }
+
+    .preview {
+      display: flex;
+      justify-content: center;
+      padding: 60px 5% 80px;
+    }
+
+    .popup-preview {
+      width: 320px;
+      background: var(--espresso);
+      border-radius: 16px;
+      box-shadow: 0 40px 80px rgba(28,14,5,0.25), 0 0 0 1px rgba(196,123,43,0.2);
+      overflow: hidden;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--cream);
+    }
+
+    .pp-header {
+      background: linear-gradient(135deg, var(--roast), var(--mocha));
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(196,123,43,0.3);
+    }
+    .pp-brand { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
+    .pp-brand span { color: var(--caramel); }
+    .pp-tag { font-size: 10px; color: rgba(245,230,200,0.5); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; margin-left: 16px; }
+
+    .pp-body { padding: 24px 20px 20px; text-align: center; }
+    .pp-ring {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      border: 5px solid rgba(245,230,200,0.1);
+      border-top-color: var(--accent);
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .pp-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(76,175,130,0.18);
+      color: var(--green);
+      border: 1px solid rgba(76,175,130,0.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .pp-time {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--cream);
+      margin-bottom: 20px;
+    }
+    .pp-row {
+      background: rgba(245,230,200,0.05);
+      border: 1px solid rgba(245,230,200,0.08);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .pp-label { color: rgba(245,230,200,0.7); font-weight: 500; }
+    .pp-val { color: var(--caramel); font-weight: 500; }
+
+    .features {
+      padding: 80px 5%;
+      background: white;
+    }
+
+    .section-label {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--caramel);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 700;
+      text-align: center;
+      color: var(--espresso);
+      margin-bottom: 60px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      border-radius: 16px;
+      padding: 28px 24px;
+      border: 1px solid rgba(196,123,43,0.1);
+      transition: all 0.2s;
+    }
+    .feature-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(196,123,43,0.1); }
+
+    .feature-icon { font-size: 32px; margin-bottom: 16px; display: block; }
+    .feature-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--espresso);
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 14px;
+      color: var(--mocha);
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    .steps {
+      padding: 80px 5%;
+      background: var(--espresso);
+      color: var(--cream);
+      text-align: center;
+    }
+
+    .steps .section-label { color: var(--caramel); }
+    .steps .section-title { color: var(--cream); margin-bottom: 50px; }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      max-width: 800px;
+      margin: 0 auto 50px;
+    }
+
+    .step { text-align: center; }
+    .step-num {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: rgba(196,123,43,0.2);
+      border: 1px solid rgba(196,123,43,0.4);
+      color: var(--caramel);
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .step h4 { font-size: 15px; font-weight: 500; color: var(--cream); margin-bottom: 6px; }
+    .step p { font-size: 13px; color: rgba(245,230,200,0.5); font-weight: 300; line-height: 1.6; }
+
+    footer {
+      background: var(--roast);
+      color: rgba(245,230,200,0.5);
+      text-align: center;
+      padding: 30px 5%;
+      font-size: 13px;
+      border-top: 1px solid rgba(196,123,43,0.2);
+    }
+    footer a { color: var(--caramel); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    footer strong { color: var(--cream); font-weight: 500; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">Sip<span>raw</span></div>
+    <a class="nav-link" href="https://github.com/YOUR_USERNAME/sipraw-coffee-reminder" target="_blank">View on GitHub</a>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-badge">
+      <div class="badge-dot"></div>
+      Free Chrome Extension
+    </div>
+    <h1>Never Miss Your<br><span>Coffee Break</span> Again</h1>
+    <p>A beautiful reminder extension that keeps you fueled, focused, and refreshed throughout your workday.</p>
+    <div class="hero-btns">
+      <a class="btn-main" href="https://github.com/nicolas768445/sipraw-coffee-reminder/archive/refs/heads/main.zip">
+        ☕ Download Free
+      </a>
+      <a class="btn-ghost" href="https://github.com/nicolas768445/sipraw-coffee-reminder" target="_blank">
+        ★ View on GitHub
+      </a>
+    </div>
+  </section>
+
+  <section class="preview">
+    <div class="popup-preview">
+      <div class="pp-header">
+        <div class="pp-brand">Sip<span>raw</span></div>
+        <div class="pp-tag">Coffee Break Reminder</div>
+      </div>
+      <div class="pp-body">
+        <div class="pp-ring">☕</div>
+        <div class="pp-status">
+          <div style="width:6px;height:6px;background:#4caf82;border-radius:50%;"></div>
+          Reminders on
+        </div>
+        <div class="pp-time">42:17</div>
+        <div class="pp-row">
+          <span class="pp-label">Remind every</span>
+          <span class="pp-val">1 hour</span>
+        </div>
+        <div class="pp-row">
+          <span class="pp-label">Next break in</span>
+          <span class="pp-val">42 min</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="section-label">Why you'll love it</div>
+    <div class="section-title">Everything you need</div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">⏰</span>
+        <h3>Custom Intervals</h3>
+        <p>Set reminders every 15, 30, 45, 60, 90, or 120 minutes — whatever works for your schedule.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔔</span>
+        <h3>Smart Notifications</h3>
+        <p>Beautiful Chrome notifications with motivational messages to keep you energized.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⏱️</span>
+        <h3>Live Countdown</h3>
+        <p>A real-time countdown ring shows exactly how long until your next well-deserved break.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🆓</span>
+        <h3>Completely Free</h3>
+        <p>Open source and 100% free. No sign-up, no tracking, no nonsense. Just coffee breaks.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="steps">
+    <div class="section-label">Get started in minutes</div>
+    <div class="section-title">How to Install</div>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h4>Download</h4>
+        <p>Download the ZIP file from GitHub and extract it to a folder</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h4>Open Chrome</h4>
+        <p>Go to <code style="color:var(--caramel)">chrome://extensions</code> and enable Developer Mode</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h4>Load Extension</h4>
+        <p>Click "Load unpacked" and select the extracted folder</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h4>Enjoy ☕</h4>
+        <p>Pin the extension and set your preferred break interval</p>
+      </div>
+    </div>
+    <a class="btn-main" href="https://github.com/nicolas768445/sipraw-coffee-reminder/archive/refs/heads/main.zip">
+      Download Now — It's Free
+    </a>
+  </section>
+
+  <footer>
+    <p>Made with ☕ by <strong>Sipraw</strong> — Premium Mugs &amp; Tumblers &nbsp;|&nbsp;
+      <a href="https://sipraw.com" target="_blank">sipraw.com</a> &nbsp;|&nbsp;
+      <a href="https://github.com/nicolas768445/sipraw-coffee-reminder" target="_blank">GitHub</a>
+    </p>
+    <p style="margin-top:8px;font-size:11px;">Open source under MIT License</p>
+  </footer>
+
+</body>
+</html>
